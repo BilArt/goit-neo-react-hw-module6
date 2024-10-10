@@ -1,8 +1,8 @@
 import { useId } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { nanoid } from "nanoid";
-import PropTypes from "prop-types";
+import { useDispatch } from "react-redux";
+import { addContact } from "../../redux/contactsSlice";
 import styles from "./ContactForm.module.css";
 
 const ContactSchema = Yup.object().shape({
@@ -16,7 +16,8 @@ const ContactSchema = Yup.object().shape({
     .required("Number is required"),
 });
 
-const ContactForm = ({ onSubmit }) => {
+const ContactForm = () => {
+  const dispatch = useDispatch();
   const nameFieldId = useId();
   const numberFieldId = useId();
 
@@ -25,11 +26,7 @@ const ContactForm = ({ onSubmit }) => {
       initialValues={{ name: "", number: "" }}
       validationSchema={ContactSchema}
       onSubmit={(values, { resetForm }) => {
-        onSubmit({
-          id: nanoid(),
-          name: values.name,
-          number: values.number,
-        });
+        dispatch(addContact(values.name, values.number));
         resetForm();
       }}
     >
@@ -41,21 +38,13 @@ const ContactForm = ({ onSubmit }) => {
 
           <label htmlFor={numberFieldId}>Number</label>
           <Field type="text" name="number" id={numberFieldId} />
-          <ErrorMessage
-            name="number"
-            component="div"
-            className={styles.error}
-          />
+          <ErrorMessage name="number" component="div" className={styles.error} />
 
           <button className={styles.contactBtn} type="submit">Add Contact</button>
         </Form>
       )}
     </Formik>
   );
-};
-
-ContactForm.propTypes = {
-  onSubmit: PropTypes.func.isRequired,
 };
 
 export default ContactForm;
