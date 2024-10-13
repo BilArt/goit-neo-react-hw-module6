@@ -1,8 +1,8 @@
 import { useId } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { useDispatch } from 'react-redux';
-import { addContact } from '../../redux/contactsSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { addContact, selectContacts } from '../../redux/contactsSlice';
 import styles from "./ContactForm.module.css";
 
 const ContactSchema = Yup.object().shape({
@@ -18,18 +18,25 @@ const ContactSchema = Yup.object().shape({
 
 const ContactForm = () => {
   const dispatch = useDispatch();
+  const contacts = useSelector(selectContacts);
   const nameFieldId = useId();
   const numberFieldId = useId();
+
+  const handleSubmit = (values, { resetForm }) => {
+    const duplicate = contacts.find(contact => contact.name === values.name);
+    if (duplicate) {
+      alert("Contact already exists!");
+      return;
+    }
+    dispatch(addContact(values.name, values.number));
+    resetForm();
+  };
 
   return (
     <Formik
       initialValues={{ name: "", number: "" }}
       validationSchema={ContactSchema}
-      onSubmit={(values, { resetForm }) => {
-        console.log('Form Submitted with values:', values);
-        dispatch(addContact(values.name, values.number));
-        resetForm();
-      }}
+      onSubmit={handleSubmit}
     >
       {() => (
         <Form className={styles.form}>
@@ -39,11 +46,7 @@ const ContactForm = () => {
 
           <label htmlFor={numberFieldId}>Number</label>
           <Field type="text" name="number" id={numberFieldId} />
-          <ErrorMessage
-            name="number"
-            component="div"
-            className={styles.error}
-          />
+          <ErrorMessage name="number" component="div" className={styles.error} />
 
           <button className={styles.contactBtn} type="submit">Add Contact</button>
         </Form>
